@@ -8,13 +8,9 @@ import {
   StyleSheet,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
-import {calculateScore} from './utils';
+import {calculateScore, hoursArray} from './utils';
 
 export const Home = () => {
-  const hoursArray = [...Array(24).keys()].flatMap(h => {
-    return [h + 0.5, h + 1];
-  });
-
   const [hoursInBed, setHoursInBed] = useState(0);
   const [hoursAsleep, setHoursAsleep] = useState(0);
   const [calculation, setCalculation] = useState(0);
