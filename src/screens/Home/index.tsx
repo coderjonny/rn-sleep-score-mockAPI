@@ -1,8 +1,6 @@
 import React, {useState} from 'react';
 import {Screen, showErrorMessage, Text, View} from 'ui';
-// import {API_URL} from '@env';
-import {translate, timeout} from 'core';
-import {useTasks} from 'api';
+import {translate} from 'core';
 import {
   ActivityIndicator,
   ScrollView,
@@ -10,39 +8,46 @@ import {
   StyleSheet,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
+import {calculateScore} from './utils';
 
 export const Home = () => {
   const hoursArray = [...Array(24).keys()].flatMap(h => {
     return [h + 0.5, h + 1];
   });
 
-  // const {data, isLoading, refetch} = useTasks();
-  const [hoursInBed, setHoursInBed] = useState();
-  const [hoursAsleep, setHoursAsleep] = useState();
-  const [calculation, setCalculation] = useState();
+  const [hoursInBed, setHoursInBed] = useState(0);
+  const [hoursAsleep, setHoursAsleep] = useState(0);
+  const [calculation, setCalculation] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
-  const calculateScore = (): number => {
-    if (hoursInBed && hoursAsleep) {
-      return 100 * (hoursAsleep / hoursInBed);
-    }
-    return 0;
+  const uploadMockData = (score: number) => {
+    setIsLoading(true);
+    setIsError(false);
+    const randomSuccessOrFailure = Math.random() * 10 < 6;
+    setTimeout(() => {
+      setIsLoading(false);
+      if (randomSuccessOrFailure) {
+        setCalculation(score);
+      } else {
+        showErrorMessage('Error saving data');
+        setIsError(true);
+      }
+    }, 800); // simulate loading time
   };
 
-  const uploadData = async (score: number) => {
-    await timeout(2000);
-    await setIsLoading(true);
-    return [score, 201];
+  const onPressButton = async () => {
+    const score = calculateScore(hoursInBed, hoursAsleep);
+    uploadMockData(score);
   };
 
-  const onPressButton = () => {
-    // setIsLoading(isLoading);
-    console.log(isLoading, calculateScore());
-    const score = calculateScore();
-    setCalculation(score);
-    uploadData(score);
-  };
-  const isButtonDisabled = !hoursInBed && !hoursAsleep;
+  const isButtonDisabled = hoursInBed === 0 || hoursAsleep === 0;
+
+  const text = isLoading
+    ? 'loading'
+    : isError
+    ? 'Error saving, try again..'
+    : calculation;
 
   return (
     <Screen>
@@ -72,18 +77,11 @@ export const Home = () => {
               );
             })}
           </Picker>
-          {isLoading && (
-            <>
-              <ActivityIndicator color="#000" />
-              <Text variant="header" textAlign="center">
-                Loading
-              </Text>
-            </>
-          )}
-
-          <Text variant="body" textAlign="center">
-            {calculation}
+          {isLoading && <ActivityIndicator color="#000" />}
+          <Text variant="header" textAlign="center">
+            {text}
           </Text>
+
           <Pressable
             disabled={isButtonDisabled}
             onPress={onPressButton}
