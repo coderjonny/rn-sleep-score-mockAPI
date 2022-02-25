@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {calculateScore, hoursArray} from './utils';
+import {useAddScore} from 'api';
 
 export const Home = () => {
   const [hoursInBed, setHoursInBed] = useState(0);
@@ -16,25 +17,25 @@ export const Home = () => {
   const [calculation, setCalculation] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const {mutateAsync} = useAddScore();
 
-  const uploadMockData = (score: number) => {
+  const uploadScoreData = async (score: number) => {
     setIsLoading(true);
-    setIsError(false);
-    const randomSuccessOrFailure = Math.random() * 10 < 6;
-    setTimeout(() => {
+    const response = await mutateAsync({score});
+    const {status} = response;
+
+    if (status === 201) {
       setIsLoading(false);
-      if (randomSuccessOrFailure) {
-        setCalculation(score);
-      } else {
-        showErrorMessage('Error saving data');
-        setIsError(true);
-      }
-    }, 800); // simulate loading time
+      setCalculation(score);
+    } else {
+      showErrorMessage('Error saving data');
+      setIsError(true);
+    }
   };
 
   const onPressButton = async () => {
     const score = calculateScore(hoursInBed, hoursAsleep);
-    uploadMockData(score);
+    await uploadScoreData(score);
   };
 
   const isButtonDisabled = hoursInBed === 0 || hoursAsleep === 0;
