@@ -23,7 +23,6 @@ export const Home = () => {
     setIsLoading(true);
     const response = await mutateAsync({score});
     const {status} = response;
-
     if (status === 201) {
       setIsLoading(false);
       setCalculation(score);
